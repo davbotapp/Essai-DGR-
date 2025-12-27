@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Davbot App</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Nunito}
+body{background:#1c1c1c;color:#fff}
+.msgs_cont{height:calc(100vh - 120px);overflow:auto;padding:10px}
+li{margin:8px;padding:12px;border-radius:12px;max-width:75%}
+.schat{background:#5b5bff;margin-left:auto}
+.rchat{background:#2ecc71;color:#000}
+.bottom{position:fixed;bottom:0;width:100%;background:#222;padding:10px}
+#input{display:flex;gap:5px}
+#input input{flex:1;padding:10px;border-radius:8px;border:none}
+#input button{background:none;border:none;color:white;font-size:20px}
+</style>
+</head>
+
+<body>
+
+<div class="msgs_cont">
+<ul id="list_cont"></ul>
+</div>
+
+<div class="bottom">
+<div id="input">
+<input id="txt" placeholder="Écris ici...">
+<button onclick="sendMessage()">
+<i class="fa-solid fa-paper-plane"></i>
+</button>
+</div>
+</div>
+
+<script>
+const chatBox = document.getElementById("list_cont");
+const txt = document.getElementById("txt");
+
+let userName = localStorage.getItem("name") || "Utilisateur";
+let userCountry = localStorage.getItem("country") || "Monde";
+
+function addMessage(text,type){
+  const li=document.createElement("li");
+  li.className=type==="user"?"schat":"rchat";
+  li.textContent=text;
+  chatBox.appendChild(li);
+  chatBox.scrollTop=chatBox.scrollHeight;
+}
+
+async function sendMessage(){
+  if(!txt.value.trim()) return;
+  const msg = txt.value;
+  txt.value="";
+  addMessage(msg,"user");
+
+  try{
+    const res = await fetch("/api/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        message: msg,
+        userName,
+        userCountry
+      })
+    });
+
+    const data = await res.json();
+    addMessage(data.reply || "Pas de réponse","bot");
+
+  }catch{
+    addMessage("Erreur serveur","bot");
+  }
+}
+</script>
+
+</body>
+</html>
